@@ -11,36 +11,17 @@ public class Main {
 
     public static void main(String[] args) {
 
-        ExecutorService executorService = Executors.newFixedThreadPool(1001);
-        Runnable countMaxRunnable=()->{
-            synchronized (sizeToFreq) {
-                while (!Thread.interrupted()) {
-                    System.out.printf("khjgjkv");
-                    System.out.println(sizeToFreq.entrySet().stream().max(Map.Entry.comparingByValue()));
-                    try {
-                        sizeToFreq.wait();
-                        System.out.printf("7777777777777");
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        };
+        ExecutorService executorService = Executors.newFixedThreadPool(1000);
         IntStream.range(0, 1000)
                 .forEach(x -> {
                     Runnable runnable = () -> {
-                           synchronized (sizeToFreq) {
-                               String s = generateRoute("RLRFR", 100);
-                               int numberOfRepetitionsR = (int) s.chars().filter(cr -> cr == 'R').count();
-                               addCountRepetitionsR(numberOfRepetitionsR);
-                               sizeToFreq.notify();
-                           }
+                        String s = generateRoute("RLRFR", 100);
+                        int numberOfRepetitionsR = (int) s.chars().filter(cr -> cr == 'R').count();
+                        addCountRepetitionsR(numberOfRepetitionsR);
                     };
-                    executorService.submit(runnable);
+                    executorService.execute(runnable);
                 });
 
-
-        executorService.submit(countMaxRunnable);
         executorService.shutdown();
         int xx = sizeToFreq.values().stream().mapToInt(x -> x).sum();
         System.out.println("Проверка. Сумма значений в мапе (должна быть равна 1000): " + xx);
@@ -71,16 +52,14 @@ public class Main {
     }
 
     public static synchronized void addCountRepetitionsR(int numberOfRepetitionsR) {
-
-            int value;
-            if (sizeToFreq.containsKey(numberOfRepetitionsR)) {
-                value = sizeToFreq.get(numberOfRepetitionsR);
-                value += 1;
-                sizeToFreq.put(numberOfRepetitionsR, value);
-            } else {
-                sizeToFreq.put(numberOfRepetitionsR, 1);
-            }
-
+        int value;
+        if (sizeToFreq.containsKey(numberOfRepetitionsR)) {
+            value = sizeToFreq.get(numberOfRepetitionsR);
+            value += 1;
+            sizeToFreq.put(numberOfRepetitionsR, value);
+        } else {
+            sizeToFreq.put(numberOfRepetitionsR, 1);
+        }
     }
 
     public static String generateRoute(String letters, int length) {
